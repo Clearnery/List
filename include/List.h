@@ -875,32 +875,22 @@ inline void TList<T>::forEach(std::function<void(T&)> func)
 template<class T>
 inline bool TList<T>::saveToFile(const std::string& filename) const
 {
-    std::ofstream file(filename, std::ios::binary);
+    std::ofstream file(filename);
     if (!file.is_open())
     {
         return false;
     }
 
-    file.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    file << size << " ";
 
     if (head != nullptr)
     {
         const TNodeList<T>* current = head;
-        int saved = 0;
-
-        do
+        for (int i = 0; i < size; i++)
         {
-            T value = current->getValue();
-            file.write(reinterpret_cast<const char*>(&value), sizeof(T));
+            file << current->getValue() << " ";
             current = current->getNext();
-            saved++;
-
-            if (saved > size)
-            {
-                break;
-            }
-
-        } while (current != head);
+        }
     }
 
     file.close();
@@ -910,24 +900,21 @@ inline bool TList<T>::saveToFile(const std::string& filename) const
 template<class T>
 inline bool TList<T>::loadFromFile(const std::string& filename)
 {
-    std::ifstream file(filename, std::ios::binary);
+    std::ifstream file(filename);
     if (!file.is_open())
     {
         return false;
     }
-
-    while (head != nullptr)
+    
+    while (!isEmpty())
     {
-        TNodeList<T>* temp = head;
-        head = head->getNext();
-        delete temp;
-        if (head == temp) break;
+        PopFront();
     }
-    head = nullptr;
-    size = 0;
-
+    
     int fileSize;
-    if (!file.read(reinterpret_cast<char*>(&fileSize), sizeof(fileSize)))
+    file >> fileSize;
+
+    if (!file || fileSize < 0)
     {
         file.close();
         return false;
@@ -936,7 +923,8 @@ inline bool TList<T>::loadFromFile(const std::string& filename)
     for (int i = 0; i < fileSize; i++)
     {
         T value;
-        if (!file.read(reinterpret_cast<char*>(&value), sizeof(T)))
+        file >> value;
+        if (!file)
         {
             file.close();
             return false;
