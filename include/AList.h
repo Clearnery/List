@@ -1,5 +1,10 @@
 #pragma once
-
+#include <istream>    
+#include <ostream>    
+#include <vector>     
+#include <functional> 
+#include <string>     
+#include <iostream>
 
 template<class T>
 class TArrayList 
